@@ -8,7 +8,8 @@ SPECULAR_BRANCH_CLR = Color3(101, 69, 33)
 EMISSION_BRANCH_CLR = Color3(101, 69, 33)
 
 BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
-LEAF_MATERIAL = Material(Color3(60,179,113), 0, Color3(0,0,0), Color3(0,0,0), 1, 0)
+LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
+
 ##########################################
 
 # Define geometry of basic components
@@ -70,8 +71,11 @@ for i in range(18):
     nodes.append(node)
     end.append((pos, loc, 10))
 
-shape = Sphere(1)
-leaf = Shape(shape, LEAF_MATERIAL)
+scale = 0.3
+leaf_base = Polyline2D.Circle(0.01,25)
+leaf_curve = NurbsCurve2D(np.array([(0,0,1), (2,1,1), (1.25,2,1), (0.75,3,1),
+                   (0,5,1),(0,5,1),(-0.75,3,1),(-1.25,2,1),(-2,1,1),(0,0,1)])*scale)
+leaf = Shape(Translated(-2,0,0, ExtrudedHull(leaf_curve, leaf_base)), LEAF_MATERIAL)
 
 ##########################################
 
