@@ -12,16 +12,40 @@ LEAF_MATERIAL = Material(Color3(60,179,113), 0, Color3(0,0,0), Color3(0,0,0), 1,
 ##########################################
 
 # Define geometry of basic components
-trunk = Cylinder(3, 10)
+trunk = Cylinder(0.5, 10)
 trunk = Shape(trunk, BRANCH_MATERIAL)
 
-leader = Cylinder(2, 5)
+
+leader = Cylinder(0.5, 10)
 leader = AxisRotated((0,1,0), pi/2., leader)
-leader = Translated(0, 0, 5, leader)
+leader = Translated(0, 0, 10, leader)
 leader = Shape(leader, BRANCH_MATERIAL)
 
-shape = Cylinder(1, 5)
-cane = Shape(shape, BRANCH_MATERIAL)
+leader2 = Cylinder(0.5, 10)
+leader2 = AxisRotated((0,1,0), pi * 1.5, leader2)
+leader2 = Translated(0, 0, 10, leader2)
+leader2 = Shape(leader2, BRANCH_MATERIAL)
+
+canes = []
+
+for i in range(5):
+    c = Cylinder(0.5, 5)
+    c = AxisRotated((1,0,0), pi * 1.5, c)
+    c = Translated(0, 0, 10, c)
+    c = Translated(10 - (i * 4), 0, 0, c)
+    c = Shape(c, BRANCH_MATERIAL)
+    canes.append(c)
+
+for i in range(5):
+    c = Cylinder(0.5, 5)
+    c = AxisRotated((1,0,0), pi * .5, c)
+    c = Translated(0, 0, 10, c)
+    c = Translated(8 - (i * 4), 0, 0, c)
+    c = Shape(c, BRANCH_MATERIAL)
+    canes.append(c)
+
+
+
 
 shape = Sphere(1)
 leaf = Shape(shape, LEAF_MATERIAL)
@@ -36,7 +60,7 @@ p_bb = 0.2 # probability that tree will remain dormant
 p_sd = 0.7 # probability that tree will actively grow if not dormant
 steps = 0
 cur_state = DORMANT
-scene_objects = [trunk] # start with just tree trunk
+scene_objects = [trunk, leader, leader2] + canes # start with just tree trunk
 
 # Growth folling Markov Model outlined in paper
 while cur_state != ABORT:
