@@ -65,10 +65,10 @@ for i in range(18):
     
     if (angle < pi):
         loc *= -1
-    node = Translated(pos, loc, 10, node)
+    node = Translated(pos, loc, 15, node)
     node = Shape(node, BRANCH_MATERIAL)
     nodes.append(node)
-    end.append((pos, loc, 10))
+    end.append((pos, loc, 15))
 
 shape = Sphere(1)
 leaf = Shape(shape, LEAF_MATERIAL)
@@ -114,7 +114,8 @@ while num_aborted < 18:
             extend.append(node)
             print(1, end[i])
             tuple_add = lambda a, b: tuple(map(sum, zip(a, b))) 
-            new_end = (4 * x/(2 * pi), 4 * y/(2 * pi), 4 * z/(2 * pi))
+            norm = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2))
+            new_end = (4 * (x/norm), 4 * (y/norm), 4 * (z/norm))
             end[i] = tuple_add(end[i], new_end)
             print(2, end[i])
             if np.random.binomial(1000, p_bb, 1) > p_bb*1000:
