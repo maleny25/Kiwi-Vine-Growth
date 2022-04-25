@@ -12,19 +12,21 @@ LEAF_MATERIAL = Material(Color3(60,179,113), 0, Color3(0,0,0), Color3(0,0,0), 1,
 ##########################################
 
 # Define geometry of basic components
-trunk = Cylinder(0.5, 10)
-trunk = Shape(trunk, BRANCH_MATERIAL)
+cyl = Cylinder(0.5, 10)
+tex = ImageTexture("Bark.jpg")
+trunk = Shape(cyl,tex)
+# trunk = Shape(trunk, BRANCH_MATERIAL)
 
 
 leader = Cylinder(0.5, 10)
 leader = AxisRotated((0,1,0), pi/2., leader)
 leader = Translated(0, 0, 10, leader)
-leader = Shape(leader, BRANCH_MATERIAL)
+leader = Shape(leader, tex)
 
 leader2 = Cylinder(0.5, 10)
 leader2 = AxisRotated((0,1,0), pi * 1.5, leader2)
 leader2 = Translated(0, 0, 10, leader2)
-leader2 = Shape(leader2, BRANCH_MATERIAL)
+leader2 = Shape(leader2, tex)
 
 canes = []
 
@@ -33,7 +35,7 @@ for i in range(5):
     c = AxisRotated((1,0,0), pi * 1.5, c)
     c = Translated(0, 0, 10, c)
     c = Translated(10 - (i * 4), 0, 0, c)
-    c = Shape(c, BRANCH_MATERIAL)
+    c = Shape(c, tex)
     canes.append(c)
 
 for i in range(5):
@@ -41,7 +43,7 @@ for i in range(5):
     c = AxisRotated((1,0,0), pi * .5, c)
     c = Translated(0, 0, 10, c)
     c = Translated(8 - (i * 4), 0, 0, c)
-    c = Shape(c, BRANCH_MATERIAL)
+    c = Shape(c, tex)
     canes.append(c)
 
 
