@@ -12,40 +12,13 @@ LEAF_MATERIAL = Material(Color3(60,179,113), 0, Color3(0,0,0), Color3(0,0,0), 1,
 ##########################################
 
 # Define geometry of basic components
-base = Polyline2D.Circle(1,50)
-prof1 = NurbsCurve([(0.0, 0.0, 0, 1),
-                   (0.8, 1.0, 3, 1),
-                   (0.4, 1.1, 6, 2),
-                   (-0.2, 0.3, 8, 2),
-                   (-0.4, 0.0, 9, 2)])
-scales1 = [(0.9, 0.7),
-          (0.7, 0.6),
-          (0.5, 0.4),
-          (0.2, 0.2),
-          (0.0, 0.0)]
-trunk = Extrusion(prof1, base, scales1)
+trunk = Cylinder(3, 10)
 trunk = Shape(trunk, BRANCH_MATERIAL)
 
-prof2 = NurbsCurve([(0.8, 1.0, 3, 1),
-                   (1.5, 1.8, 4, 1),
-                   (1.7, 2.1, 5, 1),
-                   (1.2, 1.7, 6, 1),
-                   (1.0, 1.5, 7, 1)])
-scales2 = [(0.5, 0.5),
-           (0.37, 0.35),
-           (0.24, 0.21),
-           (0.11, 0.08),
-           (0.0, 0.0)]
-
-prof3 = NurbsCurve([(-0.8, 1.0, 3, 1),
-                   (1.5, 1.8, 4, 1),
-                   (1.7, -2.1, 5, 1),
-                   (1.2, -1.7, 6, 1),
-                   (1.0, -1.5, 7, 1)])
-leader1 = Extrusion(prof2, base, scales2)
-leader1 = Shape(leader1, BRANCH_MATERIAL)
-leader2 = Extrusion(prof3, base, scales2)
-leader2 = Shape(leader2, BRANCH_MATERIAL)
+leader = Cylinder(2, 5)
+leader = AxisRotated((0,1,0), pi/2., leader)
+leader = Translated(0, 0, 5, leader)
+leader = Shape(leader, BRANCH_MATERIAL)
 
 shape = Cylinder(1, 5)
 cane = Shape(shape, BRANCH_MATERIAL)
@@ -75,7 +48,7 @@ while cur_state != ABORT:
         if np.random.binomial(1000, p_bb, 1) > p_bb*1000:
             cur_state = ABORT
         # TODO: add objects to scene
-        # scene_objects.append(leader1)
+        scene_objects.append(leader)
     else:
         raise ValueError("Invalid state: " + cur_state)
 #scene_objects.append(leader2)
