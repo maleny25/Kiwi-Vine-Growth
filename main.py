@@ -12,7 +12,8 @@ LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1,
 
 ##########################################
 #user inputs
-
+# pbb = 
+# psd = 
 ##########################################
 
 #Lambda functions
@@ -150,7 +151,7 @@ while num_aborted < 18:
             #offset the new end position by the old end position
             end[i] = tuple_add(end[i], new_end)
             
-            
+            #change to user input
             if np.random.binomial(1000, p_bb, 1) > p_bb*1000:
                 states[i] = ABORT
                 num_aborted += 1
