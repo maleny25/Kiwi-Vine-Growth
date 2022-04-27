@@ -1,3 +1,4 @@
+from re import L
 from openalea.plantgl.all import *
 import numpy as np
 ##########################################
@@ -8,7 +9,9 @@ SPECULAR_BRANCH_CLR = Color3(101, 69, 33)
 EMISSION_BRANCH_CLR = Color3(101, 69, 33)
 
 BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
+BRANCH_MATERIAL = ImageTexture("Bark.jpg")
 LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
+LEAF_MATERIAL = ImageTexture("leaf_texture.png")
 
 ##########################################
 #user inputs
@@ -54,7 +57,7 @@ for i in range(5):
     c = AxisRotated((1,0,0), pi * 1.5, c)
     c = Translated(0, 0, 10, c)
     c = Translated(10 - (i * 4), 0, 0, c)
-    c = Shape(c, BRANCH_MATERIAL)
+    c = Shape(c, LEAF_MATERIAL)
     canes_pos.append((10 - (i * 4), pi * 1.5))
     canes.append(c)
 
@@ -63,7 +66,7 @@ for i in range(5):
     c = AxisRotated((1,0,0), pi * .5, c)
     c = Translated(0, 0, 10, c)
     c = Translated(8 - (i * 4), 0, 0, c)
-    c = Shape(c, BRANCH_MATERIAL)
+    c = Shape(c, LEAF_MATERIAL)
     canes_pos.append((8 - (i * 4), pi * .5))
     canes.append(c)
 
@@ -79,7 +82,7 @@ for i in range(18):
     if (angle < pi):
         loc *= -1
     node = Translated(pos, loc, 10, node)
-    node = Shape(node, BRANCH_MATERIAL)
+    node = Shape(node, LEAF_MATERIAL)
     nodes.append(node)
     end.append((pos, loc, 10))
 
@@ -87,7 +90,7 @@ scale = 0.3
 leaf_base = Polyline2D.Circle(0.01,25)
 leaf_curve = NurbsCurve2D(np.array([(0,0,1), (2,1,1), (1.25,2,1), (0.75,3,1),
                    (0,5,1),(0,5,1),(-0.75,3,1),(-1.25,2,1),(-2,1,1),(0,0,1)])*scale)
-leaf = Shape(Translated(-2,0,0, ExtrudedHull(leaf_curve, leaf_base)), LEAF_MATERIAL)
+leaf = Shape((Translated(-2,0,0, ExtrudedHull(leaf_curve, leaf_base))), LEAF_MATERIAL)
 
 ##########################################
 
@@ -138,7 +141,7 @@ while num_aborted < 18:
             shoot = AxisRotated((0,0,1), z, shoot)
 
             #offset new shoot by the end of the last shoot it's growing off of
-            shoot  = Translated(end[i][0], end[i][1], end[i][2], shoot)
+            shoot  = Shape(Translated(end[i][0], end[i][1], end[i][2], shoot), LEAF_MATERIAL)
             #add shoot to the list of shoots
             shoots.append(shoot)
 
