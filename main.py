@@ -10,8 +10,9 @@ EMISSION_BRANCH_CLR = Color3(101, 69, 33)
 BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
 LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
 
+NUM_CANES = 2
 ##########################################
-# user inputs 
+# user inputs
 p_bb = 0.2 # probability that tree will remain dormant
 p_sd = 0.7 # probability that tree will actively grow if not dormant
 steps = 0
@@ -28,7 +29,7 @@ rot_y = lambda x: np.array([[np.cos(x), 0, np.sin(x)], [0, 1, 0], [-1 * np.sin(x
 #z axis rotation matrix
 rot_z = lambda x: np.array([[np.cos(x), -1 * np.sin(x), 0], [np.sin(x), np.cos(x), 0], [0, 0, 1]])
 #for adding two tuples together
-tuple_add = lambda a, b: tuple(map(sum, zip(a, b))) 
+tuple_add = lambda a, b: tuple(map(sum, zip(a, b)))
 
 ##########################################
 
@@ -78,7 +79,7 @@ for i in range(18):
     n = random.randrange(0, 10, 1)
     loc = random.randrange(0, 5, 1)
     pos, angle = canes_pos[n]
-    node = Cylinder(0.25, 0.25) 
+    node = Cylinder(0.25, 0.25)
     if (angle < pi):
         loc *= -1
     node = Translated(pos, loc, 10, node)
@@ -86,11 +87,22 @@ for i in range(18):
     nodes.append(node)
     end.append((pos, loc, 10))
 
+# generate leaves on four side of a branch
+points = [(0,-1,-1),
+              (0,1,-1),
+              (0,1,1),
+              (0,-1,1)]
+indices = [(0, 1, 2, 3)]
+square = QuadSet(points,indices)
+square = EulerRotated(0, pi/2.,0,square)
+square = AxisRotated((1,0,0),pi/4., square)
+square = Translated(0,2.0,1.1,square)
+
 scale = 0.3
 leaf_base = Polyline2D.Circle(0.01,25)
 leaf_curve = NurbsCurve2D(np.array([(0,0,1), (2,1,1), (1.25,2,1), (0.75,3,1),
                    (0,5,1),(0,5,1),(-0.75,3,1),(-1.25,2,1),(-2,1,1),(0,0,1)])*scale)
-leaf = Shape(Translated(-2,0,0, ExtrudedHull(leaf_curve, leaf_base)), LEAF_MATERIAL)
+#leaf = Shape((Translated(-2,0,0, ExtrudedHull(leaf_curve, leaf_base))), LEAF_MATERIAL)
 
 ##########################################
 
@@ -107,16 +119,16 @@ scene_objects = [trunk, leader, leader2] + canes + nodes# start with just tree t
 #Markov Chain
 #initialize list of shoots
 
-def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects):
+def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, sq=square, leaf_base=leaf_base, leaf_curve=leaf_curve):
     #Initialize the state of each node
     num_aborted = 0
     states = []
-    for i in range(18):
+    for i in range(NUM_CANES):
         states.append(DORMANT)
 
     shoots = []
-    while num_aborted < 18:
-        for i in range(18):
+    while num_aborted < NUM_CANES:
+        for i in range(NUM_CANES):
             if states[i] == ABORT:
                 continue
             elif states[i] == DORMANT:
@@ -132,15 +144,21 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects):
                 shoot = Cylinder(0.05, 4)
 
                 #make shoot grow in a random direction
-                #rotate shoot's x axis by randomly generated x angle
-                shoot = AxisRotated((1,0,0), x, shoot)
-                #rotate shoot's y axis by randomly generated y angle
-                shoot = AxisRotated((0,1,0), y, shoot)
-                #rotate shoot's z axis by randomly generated z angle
-                shoot = AxisRotated((0,0,1), z, shoot)
 
                 #offset new shoot by the end of the last shoot it's growing off of
                 shoot  = Translated(end[i][0], end[i][1], end[i][2], shoot)
+
+                leaves = [ExtrudedHull(leaf_curve, leaf_base) for i in range(4)]
+                leaves = [AxisRotated((1,0,0), x, leaves[i]) for i in range(4)]
+                leaves = [AxisRotated((0,1,0), y, leaves[i]) for i in range(4)]
+                leaves = [AxisRotated((0,0,1), z, leaves[i]) for i in range(4)]
+                leaves = [Shape(Translated(end[i][0], end[i][1], end[i][2]+1.5*i, leaves[i])) for i in range(4)]
+                sq = AxisRotated((0,0,1),pi,sq)
+                leaves += [Shape(Translated(end[i][0], end[i][1]-1, end[i][2]+1.5*i,ExtrudedHull(leaf_curve, leaf_base)),LEAF_MATERIAL) for i in range(4)]
+                # leaves += [Shape(Translated(end[i][0], end[i][1]-1, end[i][2]+1.5*i,ExtrudedHull(leaf_curve, leaf_base)),LEAF_MATERIAL) for i in range(4)]
+
+                # end[i][0], end[i][1], end[i][2]
+
                 #add shoot to the list of shoots
                 shoots.append(shoot)
 
@@ -152,7 +170,7 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects):
 
                 #offset the new end position by the old end position
                 end[i] = tuple_add(end[i], new_end)
-                
+
                 #change to user input
                 if np.random.binomial(1000, 1 - p_sd, 1) > (1 - p_sd) *1000:
                     states[i] = ABORT
@@ -160,22 +178,28 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects):
 
                 # TODO: add objects to scene
                 scene_objects.append(leader)
+                scene_objects += leaves
             else:
                 raise ValueError("Invalid state: " + cur_state)
-        
-        scene_objects.pop(-1)
-        scene_objects += shoots
-        
-        scene = Scene(scene_objects)
+shape
 
-        ##########################################
-        # Display
-        Viewer.display(scene)
-        Viewer.frameGL.setBgColor(135, 206, 235)
-        Viewer.grids.setXYPlane(True)
-        Viewer.grids.setYZPlane(False)
-        Viewer.grids.setXZPlane(False)
-        yield
+
+
+markov()
+scene_objects.pop(-1)
+scene_objects += shoots
+
+scene = Scene(scene_objects)
+
+##########################################
+# Display
+Viewer.display(scene)
+Viewer.frameGL.setBgColor(135, 206, 235)
+Viewer.grids.setXYPlane(True)
+Viewer.grids.setYZPlane(False)
+Viewer.grids.setXZPlane(False)
+# yield
+
 # #scene_objects.append(leader2)
 # scene_objects += shoots
 # scene = Scene(scene_objects)
