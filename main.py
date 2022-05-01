@@ -21,6 +21,9 @@ leaf_curve = NurbsCurve2D(np.array([(0,0,1), (2,1,1), (1.25,2,1), (0.75,3,1),
                    (0,5,1),(0,5,1),(-0.75,3,1),(-1.25,2,1),(-2,1,1),(0,0,1)])*scale)
 #leaf = Shape((Translated(-2,0,0, ExtrudedHull(leaf_curve, leaf_base))), LEAF_MATERIAL)
 
+FRUIT_MATERIAL = ImageTexture("./kiwi_skin.jpg")
+fruit = Shape(Sphere(0.25), FRUIT_MATERIAL)
+
 ##########################################
 # user inputs
 p_bb = 0.2 # probability that tree will remain dormant
@@ -54,12 +57,14 @@ def rand_angle():
 
 # Generates a new leaf with a random orientation randomly located between loc1
 # and (loc1+loc1_extension)
-def gen_leaf(loc1, loc1_extension):
+def gen_leaf(loc1, loc1_extension, leaf=True):
 
     offset = loc1_extension*np.random.random(1)
     loc = tuple_add(loc1, offset)
-
-    leaf = ExtrudedHull(leaf_curve, leaf_base)
+    if leaf:
+        leaf = ExtrudedHull(leaf_curve, leaf_base)
+    else: # is fruit
+        leaf = Shape(Sphere(0.25), FRUIT_MATERIAL)
     leaf = rotate(leaf, rand_angle(), rand_angle(), rand_angle())
     leaf = Shape(Translated(loc[0], loc[1], loc[2], leaf), LEAF_MATERIAL)
     return leaf
@@ -175,6 +180,8 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoot
                 #offsets = [tuple_add(end[i], new_end*np.random.random(1)) for n in range(NUM_LEAVES)]
                 #leaves = [Shape(Translated(offsets[n][0], offsets[n][1], offsets[n][2], leaves[n]), LEAF_MATERIAL) for n in range(NUM_LEAVES)]
                 leaves = [gen_leaf(end[i], new_end) for n in range(NUM_LEAVES)]
+                NUM_FRUITS = int(np.random.normal(0.5, 2))
+                fruits = [gen_leaf(end[i], new_end, leaf=False) for f in range(NUM_FRUITS)]
 
                 # offset the new end position by the old end position
                 end[i] = tuple_add(end[i], new_end)
@@ -186,6 +193,7 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoot
                 # Add objects to scene
                 scene_objects.append(leader)
                 scene_objects += leaves
+                scene_objects += fruits
             else:
                 raise ValueError("Invalid state: " + cur_state)
         i += 1
