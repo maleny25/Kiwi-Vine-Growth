@@ -171,6 +171,7 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects):
         ##########################################
         # Display
         Viewer.display(scene)
+
         Viewer.frameGL.setBgColor(135, 206, 235)
         Viewer.grids.setXYPlane(True)
         Viewer.grids.setYZPlane(False)
@@ -188,3 +189,7 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects):
 # Viewer.grids.setYZPlane(False)
 # Viewer.grids.setXZPlane(False)
 # # Viewer.frameGL.saveImage("user/result.png")
+
+#[(0,0,1),(1.5, 0.5, 1), (2,2,1), (1.5,3,1), (.5,3.5,1), (0,4,1), (-.5,3.5,1), (-1.5,3,1), (-2,2,1), (-1.5,.5,1),(0,0,1)]
+
+
