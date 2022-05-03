@@ -9,13 +9,8 @@ AMBIENT_BRANCH_CLR = Color3(101, 69, 33)
 SPECULAR_BRANCH_CLR = Color3(101, 69, 33)
 EMISSION_BRANCH_CLR = Color3(101, 69, 33)
 
-<<<<<<< HEAD
-# Textures
-BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
-=======
 # BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
 BRANCH_MATERIAL = ImageTexture("Bark.jpg")
->>>>>>> 7a4c8684cce60ff86eb3a54b5c2a699eb6898884
 LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
 FRUIT_MATERIAL = ImageTexture("./kiwi_skin.jpg")
 
@@ -31,6 +26,13 @@ leaf_curve = NurbsCurve2D(np.array([(0,0,1),(1.5, 0.5, 1), (2,2,1), (1.5,3,1), (
 
 # Fruit specifications
 scale = 0.5
+
+#Sink (trunk) growth rate from carbon concentration
+c = 0.1 #carbon concentration (g * C * m^-3)
+qi = 5 #sink priority parameter (g * C * m^-3)
+Gmax = 10 #maximum potential growth rate
+dsdt = (c/(c + qi)) * Gmax #growth rate
+sink_size = 1 #initial scale of sink size
 
 fruit_base = Polyline2D.Circle(scale * 1,50)
 fruit_curve = NurbsCurve2D(scale * np.array([(0,0,1),(0.85,.15,1), (1.25, 1, 1), (1.5,2,1), (1.25,3,1), (0.85,3.85,1), (0,4,1), (0,4,1), (-.85,3.85,1), (-1.25,3,1), (-1.5,2,1), (-1.25,1,1),(-.85,.15,1),(0,0,1)])*scale)
@@ -81,12 +83,34 @@ def gen_leaf(loc1, loc1_extension, leaf=True):
     leaf = Shape(Translated(loc[0], loc[1], loc[2], leaf), material)
     return leaf
 
+########### Trunk Growth according to carbon concentration
+
+def trunk(sink_size = sink_size, dsdt = dsdt):
+    while True:
+        cir = Polyline2D.Circle(1,50)
+        prof1 = NurbsCurve([(0.0, 0.0, 0, 1),
+                        (0, 0, .1 * TRUNK_HEIGHT, 1),
+                        (0, 0, .2 * TRUNK_HEIGHT, 2),
+                        (0, 0, .3 * TRUNK_HEIGHT, 2),
+                        (0, 0.0, TRUNK_HEIGHT, 2)])
+        scales1 = [(0.4 * sink_size, 0.4 * sink_size),
+                (0.3, 0.3),
+                (0.2, 0.2),
+                (0.1, 0.1),
+                (0.1, 0.1)]
+        br1 = Extrusion(prof1, cir, scales1)
+        col = Material(Color3(127,72,0))
+        sink_size += dsdt
+        yield Shape(br1,col)
+
 ##########################################
 
 # Define geometry of basic components
-#create trunk
-trunk = Cylinder(0.2, TRUNK_HEIGHT)
-trunk = Shape(trunk, BRANCH_MATERIAL)
+#create initial trunk
+# trunk = Cylinder(0.2, TRUNK_HEIGHT)
+# trunk = Shape(trunk, BRANCH_MATERIAL)
+trunk_gen = trunk()
+trunk_obj = next(trunk_gen)
 
 #create both leaders
 leader = Cylinder(0.15, TRUNK_HEIGHT)
@@ -164,22 +188,32 @@ grass = QuadSet(points,indices,normals,indices,colors)
 
 # Initialize tree
 DORMANT, GROW, ABORT = 0, 1, 2
-scene_objects = [trunk, leader, leader2] + canes + nodes + [grass] + cane_leaves# start with just tree trunk
+scene_objects = [trunk_obj, leader, leader2] + canes + nodes + [grass] + cane_leaves # start with just tree trunk
+
+#Display base tree
+scene = Scene(scene_objects)
+Viewer.display(scene)
+Viewer.frameGL.setBgColor(135, 206, 235)
+Viewer.grids.setXYPlane(True)
+Viewer.grids.setYZPlane(False)
+Viewer.grids.setXZPlane(False)
 
 ########### Growth folling Markov Model outlined in paper
 
 #Markov Chain
 #initialize list of shoots
 shoots = []
-def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoots):
+
+def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoots, trunk_gen = trunk_gen):
     #Initialize the state of each node
     states = []
     for i in range(NUM_CANES):
         states.append(DORMANT)
 
     #shoots = []
-    for i in range(NUM_CANES):
-        while states[i] != ABORT:
+    num_aborted = 0
+    while num_aborted < 18:
+        for i in range(NUM_CANES):
             if states[i] == DORMANT:
                 if np.random.binomial(1000, p_bb, 1) > p_bb*1000:
                     states[i] = GROW
@@ -196,7 +230,7 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoot
                 # offset new shoot by the end of the last shoot it's growing off of
                 shoot  = Translated(end[i][0], end[i][1], end[i][2], shoot)
                 #add shoot to the list of shoots
-                shoots.append(shoot)
+                scene_objects.append(shoot)
 
                 #compute the end of the new shoot by rotating a vector of length 4
                 v = np.array([0, 0, 4])
@@ -218,28 +252,42 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoot
                 #change to user input
                 if np.random.binomial(1000, 1 - p_sd, 1) > (1 - p_sd) *1000:
                     states[i] = ABORT
-
+                    num_aborted += 1
                 # Add objects to scene
-                scene_objects.append(leader)
                 scene_objects += leaves
                 scene_objects += fruits
+
+            elif states[i] == ABORT:
+                continue
             else:
-                raise ValueError("Invalid state: " + cur_state)
+                raise ValueError("Invalid state: " + states[i])
         i += 1
 
-markov()
-scene_objects.pop(-1)
-scene_objects += shoots
+        #remove old scene objects
+        scene_objects.pop(0) #remove trunk
+        #add new trunk according to growth rate
+        scene_objects = [next(trunk_gen)] + scene_objects
+        #display scene
+        scene = Scene(scene_objects)
+        Viewer.display(scene)
+        Viewer.frameGL.setBgColor(135, 206, 235)
+        Viewer.grids.setXYPlane(True)
+        Viewer.grids.setYZPlane(False)
+        Viewer.grids.setXZPlane(False)
+        yield
 
-scene = Scene(scene_objects)
+# scene_objects.pop(-1)
+# scene_objects += shoots
 
-##########################################
-# Display
-Viewer.display(scene)
-Viewer.frameGL.setBgColor(135, 206, 235)
-Viewer.grids.setXYPlane(True)
-Viewer.grids.setYZPlane(False)
-Viewer.grids.setXZPlane(False)
+# scene = Scene(scene_objects)
+
+# ##########################################
+# # Display
+# Viewer.display(scene)
+# Viewer.frameGL.setBgColor(135, 206, 235)
+# Viewer.grids.setXYPlane(True)
+# Viewer.grids.setYZPlane(False)
+# Viewer.grids.setXZPlane(False)
 # yield
 
 # #scene_objects.append(leader2)
