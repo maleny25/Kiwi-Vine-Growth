@@ -9,14 +9,10 @@ AMBIENT_BRANCH_CLR = Color3(101, 69, 33)
 SPECULAR_BRANCH_CLR = Color3(101, 69, 33)
 EMISSION_BRANCH_CLR = Color3(101, 69, 33)
 
-<<<<<<< HEAD
 # Textures
-BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
-=======
 # BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
 BRANCH_MATERIAL = ImageTexture("Bark.jpg")
->>>>>>> 7a4c8684cce60ff86eb3a54b5c2a699eb6898884
-LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
+LEAF_MATERIAL = Material(Color3(0,128,0), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
 FRUIT_MATERIAL = ImageTexture("./kiwi_skin.jpg")
 
 # Tree architecture specifications
@@ -143,21 +139,25 @@ for i in range(NUM_CANES):
     end.append((pos, loc, TRUNK_HEIGHT))
 
 # Create grass floor
-points = [(-15,-15,0),
-            (15,-15,0),
-            (15,15,0),
-            (-15,15,0)]
-# A list of colors
-colors = [Color4(0,150,0,155),
-          Color4(0,150,0,155),
-          Color4(0,150,0,155),
-          Color4(0,150,0,155)]
-# A list of directions for the normals
-normals = [(0,0,1) for i in range(4)]
-# A list of indices that set the indices for the quads
+points =  [(-15,-15,0),
+           (15,-15,0),
+           (15,15,0),
+           (-15,15,0)]
+# list of indices
 indices = [(0, 1, 2, 3)]
-# Creation of the quadset
-grass = QuadSet(points,indices,normals,indices,colors)
+# creating the geometry
+grass = QuadSet(points,indices)
+# creating the texture in a material
+tex = ImageTexture("grass.jpg")
+# the texture coordinates that we will use
+texCoord = [(0,0),(0,1),(1,1),(1,0)]
+# how texture coordinates are associated to vertices
+texCoordIndices = [(0,1,2,3)]
+# adding information to the geometry
+grass.texCoordList = texCoord
+grass.texCoordIndexList = texCoordIndices
+# associating the geometry and the material in a shape
+grass = Shape(grass,tex)
 ##########################################
 
 # Add components to scene based on growing algorithm
@@ -195,6 +195,7 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoot
                 shoot = rotate(shoot, x, y, z)
                 # offset new shoot by the end of the last shoot it's growing off of
                 shoot  = Translated(end[i][0], end[i][1], end[i][2], shoot)
+                shoot = Shape(shoot, ImageTexture("Bark.jpg"))
                 #add shoot to the list of shoots
                 shoots.append(shoot)
 
