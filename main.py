@@ -63,10 +63,12 @@ def gen_leaf(loc1, loc1_extension, leaf=True):
     loc = tuple_add(loc1, offset)
     if leaf:
         leaf = ExtrudedHull(leaf_curve, leaf_base)
+        material = LEAF_MATERIAL
     else: # is fruit
-        leaf = Shape(Sphere(0.25), FRUIT_MATERIAL)
+        leaf = Sphere(0.25)
+        material = FRUIT_MATERIAL
     leaf = rotate(leaf, rand_angle(), rand_angle(), rand_angle())
-    leaf = Shape(Translated(loc[0], loc[1], loc[2], leaf), LEAF_MATERIAL)
+    leaf = Shape(Translated(loc[0], loc[1], loc[2], leaf), material)
     return leaf
 
 ##########################################
@@ -227,5 +229,3 @@ Viewer.grids.setXZPlane(False)
 # # Viewer.frameGL.saveImage("user/result.png")
 
 #[(0,0,1),(1.5, 0.5, 1), (2,2,1), (1.5,3,1), (.5,3.5,1), (0,4,1), (-.5,3.5,1), (-1.5,3,1), (-2,2,1), (-1.5,.5,1),(0,0,1)]
-
-
