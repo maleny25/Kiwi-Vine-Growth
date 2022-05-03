@@ -8,7 +8,8 @@ AMBIENT_BRANCH_CLR = Color3(101, 69, 33)
 SPECULAR_BRANCH_CLR = Color3(101, 69, 33)
 EMISSION_BRANCH_CLR = Color3(101, 69, 33)
 
-BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
+# BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
+BRANCH_MATERIAL = ImageTexture("Bark.jpg")
 LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
 
 NUM_CANES = 18
@@ -131,13 +132,30 @@ for i in range(NUM_CANES):
     node = Shape(node, BRANCH_MATERIAL)
     nodes.append(node)
     end.append((pos, loc, TRUNK_HEIGHT))
+
+# Create grass floor
+points = [(-15,-15,0),
+            (15,-15,0),
+            (15,15,0),
+            (-15,15,0)]
+# A list of colors
+colors = [Color4(0,150,0,155),
+          Color4(0,150,0,155),
+          Color4(0,150,0,155),
+          Color4(0,150,0,155)]
+# A list of directions for the normals
+normals = [(0,0,1) for i in range(4)]
+# A list of indices that set the indices for the quads
+indices = [(0, 1, 2, 3)]
+# Creation of the quadset
+grass = QuadSet(points,indices,normals,indices,colors)
 ##########################################
 
 # Add components to scene based on growing algorithm
 
 # Initialize tree
 DORMANT, GROW, ABORT = 0, 1, 2
-scene_objects = [trunk, leader, leader2] + canes + nodes + cane_leaves# start with just tree trunk
+scene_objects = [trunk, leader, leader2] + canes + nodes + [grass] + cane_leaves# start with just tree trunk
 
 ########### Growth folling Markov Model outlined in paper
 
