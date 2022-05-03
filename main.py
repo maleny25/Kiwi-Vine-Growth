@@ -2,27 +2,34 @@ from openalea.plantgl.all import *
 import numpy as np
 import random
 ##########################################
+from openalea.plantgl.all import *
 
 # Define color of basic components
 AMBIENT_BRANCH_CLR = Color3(101, 69, 33)
 SPECULAR_BRANCH_CLR = Color3(101, 69, 33)
 EMISSION_BRANCH_CLR = Color3(101, 69, 33)
 
+# Textures
 BRANCH_MATERIAL = Material(AMBIENT_BRANCH_CLR, 1, SPECULAR_BRANCH_CLR, EMISSION_BRANCH_CLR, 1, 0)
 LEAF_MATERIAL = Material(Color3(60,179,113), 1, Color3(0,0,0), Color3(0,0,0), 1, 0) #ImageTexture("./leaf_texture.png")
+FRUIT_MATERIAL = ImageTexture("./kiwi_skin.jpg")
 
+# Tree architecture specifications
 NUM_CANES = 18
 TRUNK_HEIGHT = 10
 
-
+# Leaf geometry specifications
 scale = 0.3
-leaf_base = Polyline2D.Circle(0.01,25)
-leaf_curve = NurbsCurve2D(np.array([(0,0,1), (2,1,1), (1.25,2,1), (0.75,3,1),
-                   (0,5,1),(0,5,1),(-0.75,3,1),(-1.25,2,1),(-2,1,1),(0,0,1)])*scale)
-#leaf = Shape((Translated(-2,0,0, ExtrudedHull(leaf_curve, leaf_base))), LEAF_MATERIAL)
+thickness = .1
+leaf_base = NurbsCurve2D(np.array([(2, 1,1), (0, 1 + thickness, 1), (-2,1,1), (0, 1 - thickness, 1)])*scale)
+leaf_curve = NurbsCurve2D(np.array([(0,0,1),(1.5, 0.5, 1), (2,2,1), (1.5,3,1), (.5,3.5,1), (0,4,1), (0,4,1), (-.5,3.5,1), (-1.5,3,1), (-2,2,1), (-1.5,.5,1),(0,0,1)])*scale)
 
-FRUIT_MATERIAL = ImageTexture("./kiwi_skin.jpg")
-fruit = Shape(Sphere(0.25), FRUIT_MATERIAL)
+# Fruit specifications
+scale = 0.5
+
+fruit_base = Polyline2D.Circle(scale * 1,50)
+fruit_curve = NurbsCurve2D(scale * np.array([(0,0,1),(0.85,.15,1), (1.25, 1, 1), (1.5,2,1), (1.25,3,1), (0.85,3.85,1), (0,4,1), (0,4,1), (-.85,3.85,1), (-1.25,3,1), (-1.5,2,1), (-1.25,1,1),(-.85,.15,1),(0,0,1)])*scale)
+fruit = Shape(Translated(-2,0,0, ExtrudedHull(fruit_curve, fruit_base)), FRUIT_MATERIAL)
 
 ##########################################
 # user inputs
@@ -30,11 +37,9 @@ p_bb = 0.2 # probability that tree will remain dormant
 p_sd = 0.7 # probability that tree will actively grow if not dormant
 steps = 0
 
-
 ##########################################
 
 # Helper functions
-
 #x axis rotation matrix
 rot_x = lambda x: np.array([[1, 0, 0], [0, np.cos(x), -1 * np.sin(x)], [0, np.sin(x), np.cos(x)]])
 #y axis rotation matrix
@@ -65,7 +70,7 @@ def gen_leaf(loc1, loc1_extension, leaf=True):
         leaf = ExtrudedHull(leaf_curve, leaf_base)
         material = LEAF_MATERIAL
     else: # is fruit
-        leaf = Sphere(0.25)
+        leaf = ExtrudedHull(fruit_curve, fruit_base)
         material = FRUIT_MATERIAL
     leaf = rotate(leaf, rand_angle(), rand_angle(), rand_angle())
     leaf = Shape(Translated(loc[0], loc[1], loc[2], leaf), material)
