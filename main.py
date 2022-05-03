@@ -204,7 +204,7 @@ Viewer.grids.setXZPlane(False)
 #initialize list of shoots
 shoots = []
 
-def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoots, trunk_gen = trunk_gen):
+def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, trunk_gen = trunk_gen):
     #Initialize the state of each node
     states = []
     for i in range(NUM_CANES):
@@ -263,8 +263,6 @@ def markov(p_bb = p_bb, p_sd = p_sd, scene_objects = scene_objects, shoots=shoot
                 raise ValueError("Invalid state: " + states[i])
         i += 1
 
-        #remove old scene objects
-        scene_objects.pop(0) #remove trunk
         #add new trunk according to growth rate
         scene_objects = [next(trunk_gen)] + scene_objects
         #display scene
